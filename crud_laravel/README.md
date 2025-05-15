@@ -54,7 +54,6 @@ session.gc_maxlifetime = 14000
 
 ## Criar Projeto Laravel
 
-
 Para criar um projeto em Laravel, execute o comando:
 
 ```bash
@@ -84,16 +83,16 @@ npm run build (ou vite build -watch)
 
 ### Traduzir manualmente o idioma nos arquivos:
 
-- `resources\views\layouts\app.blade.php`
-- `resources\views\auth\login.blade.php`
-- `resources\views\auth\register.blade.php`
-- `resources\views\auth\passwords.blade.php`
-- `resources\views\auth\reset.blade.php`
+-   `resources\views\layouts\app.blade.php`
+-   `resources\views\auth\login.blade.php`
+-   `resources\views\auth\register.blade.php`
+-   `resources\views\auth\passwords.blade.php`
+-   `resources\views\auth\reset.blade.php`
 
 ### Traduzir mensagens de retorno do Laravel para o idioma portugês
 
-1. Fazer o download dos arquivos de tradução pt-pt: 
-https://github.com/lucascudo/laravel-pt-BR-localization
+1. Fazer o download dos arquivos de tradução pt-pt:
+   https://github.com/lucascudo/laravel-pt-BR-localization
 
 2. Executar o comando: `php artisan lang:publish`;
 3. Descompactar o arquivo `Laravel_pt-BR.rar`;
@@ -101,20 +100,174 @@ https://github.com/lucascudo/laravel-pt-BR-localization
 5. Modificar no arquivo `.env` o valor das variáveis `APP_LOCALE`e `APP_FALLBACK_LOCALE` para `pt-br`;
 
 ```
-APP_LOCALE=pt-br
-APP_FALLBACK_LOCALE=pt-br
+APP_LOCALE=pt_br
+APP_FALLBACK_LOCALE=pt_br
 ```
 
-## Configuração do fuso horário do Brasil
+## Configuração do fuso horário de Portugal
 
-Modificar no arquivo `.env` o valor da variável `APP_TIMEZONE` para `America/Sao_Paulo`:
+Modificar no arquivo `.env` o valor da variável `APP_TIMEZONE` para `Europe/Lisbon`:
 
 ```
-APP_TIMEZONE=America/Sao_Paulo
+APP_TIMEZONE=Europe/Lisbon
 ```
 
-## Configuração da Redifinição de Senha
+## Configurar a Redifinição de Senha do Utilizador
 
+### Instalar o **MailHog**
 
+Para testar a configuração de redefinição de senha, iremos utilizar o **MailHog** que é uma ferramenta de desenvolvimento que permite capturar e exibir e-mails enviados por aplicativos durante o desenvolvimento local, ele simula um servidor de email SMTP local.
 
+1. Acesse o link para download do **MailHog**: https://github.com/mailhog/MailHog/releases.
 
+2. Faça o download do arquivo binário (executável) do **MailHog** de acordo com o seu Sistema Operativo.
+
+3. Inicie o **MailHog** executando o arquivo descarregado, será apresentado na tela do terminal o seguinte conteúdo (ou algo parecido):
+
+```
+2025/05/15 14:26:19 Using in-memory storage
+2025/05/15 14:26:19 [SMTP] Binding to address: 0.0.0.0:1025
+[HTTP] Binding to address: 0.0.0.0:8025
+2025/05/15 14:26:19 Serving under http://0.0.0.0:8025/
+Creating API v1 with WebPath:
+Creating API v2 with WebPath:
+```
+
+4. No seu navegador acesse a url: `http://localhost:8025` para carregar a tela do **MailHog**, deverá constar a informação `Connected`, se constar "Deconected", basta clicar com o mouse para que ele altere para "Connected"
+
+### Habilitar extensões no `php.ini`para utilizar a redefinição de senha do Laravel
+
+Abra o arquivo `php.ini` e habilite as extensões 'mbstring`e`openssl`:
+
+```ini
+extension=mbstring
+extension=openssl
+```
+
+As extensões `mbstrin` e `openssl` são dois módulos populares do PHP, veja um resumo sobre cada uma delas:
+
+-   **mbstring**: Essa extensão é usada para manipulação de strings multibyte, ou seja, para trabalhar com caracteres multibyte, como os utilizados em vários idiomas além do unglês, como japonês, chinês, coreano, entre outros. Ela oferece funções para lidar com a conversão de encodings de strings, como UTF-8, e manipulação de caracteres multibyte. Isso é útil especialmente quando se trabalha com conteúdo de texto em sits multilingues.
+
+-   **openssl**: Essa extensão fornece uma interface para o openSSL, uma biblioteca de software usada para implementar protocolos de segurança, como HTTPS para criptografia de dados em trânsito. A extensão `openssl` permite que o PHP se comunique com servidores usando protocolos seguros, como HTTPS, e também oferece funções para criar e gerenciar chaves de criptográficas SSL/TLS e realizar operações criptográficas, como criptografia e assinatura digital.
+
+Ambas as extensões são bastante úteis em diferentes contextos de desenvolvimento web, especialmente em aplicações que necessitam de suporte a idiomas múltiplos me comunicação segura via internet.
+
+Configurar o DotEnv (arquivo .env) para utiliar o MailHog
+O Laravel utiliza a biblioteca PHP DotEnv . Em uma nova instalação do Laravel, o diretório raiz da sua aplicação conterá um .env.example, arquivo que define muitas variáveis ​​de ambiente comuns. Durante o processo de instalação do Laravel, este arquivo será automaticamente copiado para .env.
+
+Faça as alterações nas variáveis de ambiente `MAIL_*` no arquivo `.env` conforme abaixo:
+
+```ini
+MAIL_MAILER=smtp
+MAIL_HOST=localhost
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS="meu-email@mail.com.br"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+### Testar a Redefinição de Senha com o **MailHog**
+
+1. Execute o MailHog e acesse `http://localhost:8025`.
+
+2. Acesse a pasta do projeto e execute o servidor web embutido do Laravel:
+
+```bash
+php arisan serve
+```
+
+3. Acesse `http://localhost:8000` e faça o cadastro de um utilizador clicando no link **Cadastrar** ou **Register**.
+
+4. Já com um usuário cadastrado, clique no link para fazer o `Login`, no _formulário de login_ clique no link `Esqueceu sua senha?`, no _formulário de solicitação de redefinição de senha_, preencha com o e-mail de um usuário já cadastrado e clique no botão `Enviar Link de Redefinição de Senha`.
+
+5. No **MailHog** acesse a **Caixa de Entrada (Inbox)** e irá ver o e-mail com o assunto **Reset Password Notification**, abra essa mensagem e no botão **Reset Password**, você será redirecionado para o formulário **Redefinir Senha**, altere sua senha e faça o login utilizando a nova senha.
+
+Através deste teste é possível verificar que a **Redefinição de Senha** está ativa e funcionando. Para configurar um e-mail real, será necessário alterar as configurações das variáveis de ambiente `MAIL_*` do `DotEnv (arquivo .env)` de acordo com servidor de e-mail que contratar.
+
+### Personalizar a notificação de Redefinição de Senha
+
+Neste tópico iremos verificar como personalizar a mensagem (notificação) enviada por e-mail ao usuário quando solicitado a redefinição de senha.
+
+#### Opção 1: Alterar diretamente no modelo padrão de notificação para redefinição de senha do Laravel (não recomendado)
+
+Aqui, iremos fazer a alteração diretamente no modelo padrão de notificação de redefinição de senha por e-mail do Laravel, o que não é recomendado, pois quando atualizar o diretório vendor ou quando for feito o clone do projeto onde não existe o diretório vendor que será criado pelo comando composer install, toda essa configuração se perderá.
+
+Abra o arquivo `vendor/laravel/framework/src/Illuminate/Auth/Notifications/ResetPassword.php `e altere o método (função) `buildMailMessage($url)` conforme abaixo:
+
+```php
+protected function buildMailMessage($url)
+{
+    return (new MailMessage)
+        ->subject(Lang::get('Notificação de Redefinição de Senha'))
+        ->line(Lang::get('Você está recebendo este e-mail porque recebemos uma solicitação de redefinição de senha para sua conta.'))
+        ->action(Lang::get('Redefinir Senha'), $url)
+        ->line(Lang::get('Este link de redefinição de senha expirará em :count minutos.', ['count' => config('auth.passwords.'.config('auth.defaults.passwords').'.expire')]))
+        ->line(Lang::get('Se você não solicitou uma redefinição de senha, nenhuma ação adicional é necessária.'));
+}
+```
+
+Abra o arquivo `vendor/laravel/framework/src/Illuminate/Notifications/resources/views/email.blade.php` e altere os trechos de código conforme abaixo:
+
+```php
+<x-mail::message>
+{{-- Greeting --}}
+@if (! empty($greeting))
+# {{ $greeting }}
+@else
+@if ($level === 'error')
+# @lang('Opá, ocorreu um erro!')
+@else
+# @lang('Olá!')
+@endif
+@endif
+
+{{-- Intro Lines --}}
+@foreach ($introLines as $line)
+{{ $line }}
+
+@endforeach
+
+{{-- Action Button --}}
+@isset($actionText)
+<?php
+    $color = match ($level) {
+        'success', 'error' => $level,
+        default => 'primary',
+    };
+?>
+<x-mail::button :url="$actionUrl" :color="$color">
+{{ $actionText }}
+</x-mail::button>
+@endisset
+
+{{-- Outro Lines --}}
+@foreach ($outroLines as $line)
+{{ $line }}
+
+@endforeach
+
+{{-- Salutation --}}
+@if (! empty($salutation))
+{{ $salutation }}
+@else
+@lang('Atenciosamente,')<br>
+{{ config('app.name') }}
+@endif
+
+{{-- Subcopy --}}
+@isset($actionText)
+<x-slot:subcopy>
+@lang(
+    "Se você está tendo problemas para clicar no botão \":actionText\", copie e cole a URL abaixo\n".
+    'em seu navegador:',
+    [
+        'actionText' => $actionText,
+    ]
+) <span class="break-all">[{{ $displayableActionUrl }}]({{ $actionUrl }})</span>
+</x-slot:subcopy>
+@endisset
+</x-mail::message>
+
+```
