@@ -113,7 +113,7 @@ Modificar no arquivo `.env` o valor da variável `APP_TIMEZONE` para `America/Sa
 APP_TIMEZONE=America/Sao_Paulo
 ```
 
-
+## Configuração da Redifinição de Senha
 
 
 
