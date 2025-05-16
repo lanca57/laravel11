@@ -271,3 +271,164 @@ Abra o arquivo `vendor/laravel/framework/src/Illuminate/Notifications/resources/
 </x-mail::message>
 
 ```
+
+#### Opção 2: Criar um modelo personalizado de notificação para redefinição de senha (recomendado)
+
+Aqui iremos criar uma notificação de redefinição de senha por e-mail e personalizá-la, sem a necessidade de alterar o modelo padrão do Laravel, o que é recomendado e o correto a se fazer.
+
+**Passo 1:** Crie uma nova classe Notification
+
+Execute o seguinte comando no terminal para criar uma nova classe de notificação chamada `MyResetPassword:`
+```
+php artisan make:notification MyResetPassword
+```
+
+Este comando criará uma nova classe de notificação no diretório `app/Notifications`.
+
+**Passo 2:** Adicione a nova classe Notification ao seu modelo de usuário
+
+Abra o seu modelo de usuário (geralmente localizado em `app/Models/User.php`) e adicione a seguinte linha de código no topo do arquivo:
+
+```php
+use App\Notifications\MyResetPassword;
+```
+
+**Passo 3:** Adicione um novo método ao seu modelo de usuário
+
+Dentro do seu modelo de usuário (app/Models/User.php), adicione o seguinte método:
+
+```php
+public function sendPasswordResetNotification($token)
+{
+    $this->notify(new MyResetPassword($token));
+}
+```
+
+Esse método é responsável por enviar a notificação de redefinição de senha para o usuário quando solicitado.
+
+**Passo 4:** Publique os modelos de notificação por e-mail
+
+Execute o seguinte comando no terminal:
+
+```
+php artisan vendor:publish --tag=laravel-notifications
+```
+
+Este comando publicará os modelos de notificação por e-mail no diretório `resources/views/vendor/notifications`.
+
+**Passo 5:** Edite a classe Notification `MyResetPassword`
+
+1. Abra o arquivo da classe de notificação `MyResetPassword` (localizado em `app/Notifications/MyResetPassword.php`).
+
+2. Adicione a classe:
+
+    ```php
+    use Illuminate\Support\Facades\Lang;`
+    ```
+
+3. Adicione a variável (atributo) `public $token;`.
+
+    ```php
+    public $token;
+    ```
+
+4. Modifique o método construtor (`construct`) definindo o atributo `$this->token = $token;` conforme abaixo:
+
+```php
+public function __construct($token)
+{
+    $this->token = $token;
+}
+```
+
+5. Edite o método `toMail()` conforme o código:
+
+```php
+public function toMail($notifiable)
+{
+$url = url(config('app.url') . '/password/reset/' . $this->token . '?email=' . urlencode($notifiable->getEmailForPasswordReset()));
+
+return (new MailMessage)
+    ->subject(Lang::get('Notificação Personalizada de Redefinição de Senha'))
+    ->line(Lang::get('** Essa notificação é personalizada ** Você está recebendo este e-mail porque recebemos uma solicitação de redefinição de senha para sua conta.'))
+    ->action(Lang::get('Redefinir Senha'), $url)
+    ->line(Lang::get('Este link de redefinição de senha expirará em :count minutos.', ['count' => config('auth.passwords.' . config('auth.defaults.passwords') . '.expire')]))
+    ->line(Lang::get('Se você não solicitou uma redefinição de senha, nenhuma ação adicional é necessária.'));
+}
+
+```
+
+**Passo 6:** Edite o modelo de folha de e-mail
+
+Abra o arquivo `resources/views/vendor/notifications/email.blade.php` e altere os trechos de código conforme abaixo:
+
+**Greeting:**
+
+```php
+{{-- Greeting --}}
+@if (! empty($greeting))
+# {{ $greeting }}
+@else
+@if ($level === 'error')
+# @lang('Opá, ocorreu um erro!')
+@else
+# @lang('Olá!')
+@endif
+```
+
+**Salutation**):
+
+```php
+{{-- Salutation --}}
+@if (! empty($salutation))
+{{ $salutation }}
+@else
+@lang('Atenciosamente'),<br>
+{{ config('app.name') }}
+```
+
+**Subcopy:**
+
+```php
+{{-- Subcopy --}}
+@isset($actionText)
+<x-slot:subcopy>
+@lang(
+    "Se você está tendo problemas para clicar no botão \":actionText\", copie e cole a URL abaixo\n".
+    'em seu navegador:',
+    [
+        'actionText' => $actionText,
+    ]
+) <span class="break-all">[{{ $displayableActionUrl }}]({{ $actionUrl }})</span>
+</x-slot:subcopy>
+```
+
+**Passo 7:** Edite o `.env`
+
+Para que não ocorra erro na geração do link de redefinição de senha, inclua a `url` completa na variável de ambiente `APP_URL` do **DotEnv** `(arquivo .env)`, para teste local utilizando o servidor web embutido do Laravel deve a url é http://localhost:8000:
+
+```
+APP_URL=http://localhost:8000
+```
+
+**Passo 8:** Edite o arquivo `lang\pt-br\passwords.php`
+
+Para retornar uma mensagem personalizada quando o usuário fizer várias tentativas seguidas no ***formulário de solicitação de redefinição de senha***, acrescente ou altere a chave throttled dentro de `return[]`:
+
+```php
+'throttled' => 'Muitas tentativas de login. Tente novamente em alguns segundos.',
+```
+
+**Passo 9:** Personalizar o Template do E-mail de Redefinição de Senha
+
+Execute o comando:
+
+php artisan vendor:publish --tag=laravel-mail
+Esse comando vai copiar os arquivos de template de e-mail para:
+
+resources/views/vendor/mail/
+Agora edite os arquivos:
+
+resources/views/vendor/mail/html/layout.blade.php 👉 Esse é o layout geral (tem o logo do Laravel no topo).
+
+resources/views/vendor/mail/html/header.blade.php 👉 É onde está o logo. Você pode remover ou trocar a imagem por outra.
