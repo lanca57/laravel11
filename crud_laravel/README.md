@@ -92,3 +92,13 @@ php artisan serve
 ```
 
 Isso iniciará um servidor local para o seu aplicativo Laravel, normalmente em `http://localhost:8000.`
+
+
+
+
+
+
+
+
+
+php artisan make:migration create_colaboradores_table
