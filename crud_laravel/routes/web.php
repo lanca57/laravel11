@@ -2,11 +2,14 @@
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ColaboradorController;
 
 
 Route::get('/', function () {
     return view('welcome');
 });
+
+Auth::routes();
 
 Route::get('/create-colaboradores', function () {
     return view('create-colaboradores');
@@ -16,6 +19,8 @@ Route::get('/create-colaboradores', function () {
 Route::get('/edit-colaboradores', function () {
     return view('edit-colaboradores');
 });
-Auth::routes();
+
+
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::post('/colaboradores-store', [ColaboradorController::class, 'store'])->name('colaborador.store');

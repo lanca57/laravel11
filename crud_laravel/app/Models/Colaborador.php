@@ -20,5 +20,6 @@ class Colaborador extends Model
         'cargo'
     ];
 
-    protected $table = "colaboradores";
+    protected $table = "colaboradores"; // Nome da tabela original na BD
+    
 }
