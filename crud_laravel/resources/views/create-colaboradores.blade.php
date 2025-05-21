@@ -10,6 +10,13 @@
                 <form action="{{ route('colaborador.store') }}" method="post">
                     @csrf
                     <div class="conteudo-form">
+                        <p>
+                            @if (session('msg'))
+                                <div class="alert {{ session('msg_type') == 'error' ? 'alert-danger' : 'alert-success' }}">
+                                    {{ session('msg') }}
+                                </div>
+                            @endif
+                        </p>
                         <div class="card">
                             <div class="card-header">
                                 Formulário de Cadastro de Colaboradores
